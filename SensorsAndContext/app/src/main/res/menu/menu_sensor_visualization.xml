@@ -1,4 +1,19 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
-
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/group_views">
+        <item
+            android:id="@+id/Visualize"
+            android:title="Visualize"
+            android:showAsAction="collapseActionView"
+            />
+        <item
+            android:id="@+id/Process"
+            android:title="Process"
+            android:showAsAction="collapseActionView"
+            />
+        <item
+            android:id="@+id/Recognize"
+            android:title="Recognize"
+            android:showAsAction="collapseActionView"
+            />
+    </group>
 </menu>

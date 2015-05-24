@@ -2,6 +2,7 @@ package com.mobileinformationsystems.exercise3.sensorsandcontext;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,6 +10,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.SeekBar;
 
 
 public class SensorVisualization extends Activity implements SensorEventListener
@@ -16,6 +18,7 @@ public class SensorVisualization extends Activity implements SensorEventListener
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private SensorDataView mSensorData;
+    private SeekBar mSampleSeekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -31,6 +34,39 @@ public class SensorVisualization extends Activity implements SensorEventListener
         }
 
         mSensorData = (SensorDataView)findViewById(R.id.SensorData);
+        mSampleSeekBar = (SeekBar)findViewById(R.id.SampleSeekBar);
+        mSampleSeekBar.setMax(100);
+        mSampleSeekBar.setProgress(50);
+        mSampleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+            {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+                unregisterSensor();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+                registerSensor(seekBar.getProgress() * 10000);
+            }
+        });
+    }
+
+    private void unregisterSensor()
+    {
+        mSensorManager.unregisterListener(this);
+    }
+
+    private void registerSensor(int microseconds)
+    {
+        mSensorManager.registerListener(this, mAccelerometer, microseconds);
     }
 
     @Override
@@ -44,7 +80,7 @@ public class SensorVisualization extends Activity implements SensorEventListener
     protected void onPause()
     {
         super.onPause();
-        mSensorManager.unregisterListener(this);
+        unregisterSensor();
     }
 
 
@@ -59,6 +95,19 @@ public class SensorVisualization extends Activity implements SensorEventListener
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
+        switch (item.getItemId())
+        {
+            case R.id.Process:
+                startActivity(new Intent(this,SensorProcessing.class));
+                finish();
+                break;
+            case R.id.Recognize:
+                startActivity(new Intent(this,SensorRecognition.class));
+                finish();
+                break;
+            case R.id.Visualize:
+                break;
+        }
         return super.onOptionsItemSelected(item);
     }
 

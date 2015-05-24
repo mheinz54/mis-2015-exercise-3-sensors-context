@@ -15,6 +15,7 @@ public class SensorVisualization extends Activity implements SensorEventListener
 {
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
+    private SensorDataView mSensorData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -28,6 +29,8 @@ public class SensorVisualization extends Activity implements SensorEventListener
         {
             // quit app or toast a message
         }
+
+        mSensorData = (SensorDataView)findViewById(R.id.SensorData);
     }
 
     @Override
@@ -62,7 +65,7 @@ public class SensorVisualization extends Activity implements SensorEventListener
     @Override
     public void onSensorChanged(SensorEvent event)
     {
-
+        mSensorData.addMeasurements(event.values[0],event.values[1],event.values[2]);
     }
 
     @Override

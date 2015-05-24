@@ -13,11 +13,6 @@ import android.view.View;
 
 public class SensorDataView extends View
 {
-    private final int mXAxisColor = Color.RED;
-    private final int mYAxisColor = Color.GREEN;
-    private final int mZAxisColor = Color.BLUE;
-    private final int mMagnitudeColor = Color.WHITE;
-
     private ShapeDrawable mDrawableX = new ShapeDrawable();
     private ShapeDrawable mDrawableY = new ShapeDrawable();
     private ShapeDrawable mDrawableZ = new ShapeDrawable();
@@ -29,6 +24,8 @@ public class SensorDataView extends View
     private Path mMagnitudePath = new Path();
 
     private int mPointCount = 1;
+    private int mContentWidth = 0;
+    private int mContentHeight = 0;
 
     public SensorDataView(Context context)
     {
@@ -55,18 +52,18 @@ public class SensorDataView extends View
         int paddingRight = getPaddingRight();
         int paddingBottom = getPaddingBottom();
 
-        int contentWidth = getWidth() - paddingLeft - paddingRight;
-        int contentHeight = getHeight() - paddingTop - paddingBottom;
+        mContentWidth = getWidth() - paddingLeft - paddingRight;
+        mContentHeight = getHeight() - paddingTop - paddingBottom;
 
-        initDrawable(mDrawableX,mXAxisPath,Color.RED,contentWidth,contentHeight);
-        initDrawable(mDrawableY,mYAxisPath,Color.GREEN,contentWidth,contentHeight);
-        initDrawable(mDrawableZ,mZAxisPath,Color.BLUE,contentWidth,contentHeight);
-        initDrawable(mDrawableM,mMagnitudePath,Color.WHITE,contentWidth,contentHeight);
+        initDrawable(mDrawableX,mXAxisPath,Color.RED,mContentWidth,mContentHeight);
+        initDrawable(mDrawableY,mYAxisPath,Color.GREEN,mContentWidth,mContentHeight);
+        initDrawable(mDrawableZ,mZAxisPath,Color.BLUE,mContentWidth,mContentHeight);
+        initDrawable(mDrawableM,mMagnitudePath,Color.WHITE,mContentWidth,mContentHeight);
     }
 
     private void initDrawable(ShapeDrawable drawable, Path path, int color, int width, int height)
     {
-        path.moveTo(0,getHeight()/2);
+        path.moveTo(0,mContentHeight/2);
         drawable.setShape(new PathShape(path,width,height));
         drawable.getPaint().setStyle(Paint.Style.STROKE);
         drawable.getPaint().setColor(color);
@@ -75,13 +72,28 @@ public class SensorDataView extends View
 
     public void addMeasurements(float xValue, float yValue, float zValue)
     {
-        mXAxisPath.lineTo(mPointCount,getHeight()/2 + xValue*10);
-        mYAxisPath.lineTo(mPointCount,getHeight()/2 + yValue*10);
-        mZAxisPath.lineTo(mPointCount,getHeight()/2 + zValue*10);
-        mMagnitudePath.lineTo(mPointCount,getHeight()/2 + (xValue + yValue + zValue) * 10);
+        if(mPointCount >= mContentWidth)
+        {
+            mPointCount = 1;
+            mXAxisPath.rewind();
+            mXAxisPath.moveTo(0,mContentHeight/2);
+            mYAxisPath.rewind();
+            mXAxisPath.moveTo(0,mContentHeight/2);
+            mZAxisPath.rewind();
+            mZAxisPath.moveTo(0,mContentHeight/2);
+            mMagnitudePath.rewind();
+            mMagnitudePath.moveTo(0,mContentHeight/2);
+        }
 
-        this.invalidate();
+        int mid = mContentHeight / 2;
+        mXAxisPath.lineTo(mPointCount,mid + xValue*10);
+        mYAxisPath.lineTo(mPointCount,mid + yValue*10);
+        mZAxisPath.lineTo(mPointCount,mid + zValue*10);
+        mMagnitudePath.lineTo(mPointCount,mid + (xValue + yValue + zValue) * 10);
+
         mPointCount++;
+        this.invalidate();
+
     }
 
     @Override

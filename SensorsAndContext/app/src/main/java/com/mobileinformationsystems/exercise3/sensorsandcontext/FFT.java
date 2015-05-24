@@ -1,3 +1,4 @@
+package com.mobileinformationsystems.exercise3.sensorsandcontext;
 /*
  *  Copyright 2006-2007 Columbia University.
  *

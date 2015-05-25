@@ -6,8 +6,8 @@
                 android:paddingTop="@dimen/activity_vertical_margin"
                 android:paddingBottom="@dimen/activity_vertical_margin">
 
-    <com.mobileinformationsystems.exercise3.sensorsandcontext.SensorDataView
-        android:id="@+id/SensorData"
+    <com.mobileinformationsystems.exercise3.sensorsandcontext.FFTView
+        android:id="@+id/FFTData"
         android:background="#000"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -15,7 +15,7 @@
     <SeekBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/SampleSeekBar"
+        android:id="@+id/WindowsSeekBar"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"/>
 

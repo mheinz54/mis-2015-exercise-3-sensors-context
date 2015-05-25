@@ -19,7 +19,6 @@ public class SensorProcessing extends Activity  implements SensorEventListener
 {
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
-    private SensorDataView mSensorData;
     private SeekBar mSampleSeekBar;
     private int fftWindowsSize;
     private double[] signals;
@@ -32,7 +31,7 @@ public class SensorProcessing extends Activity  implements SensorEventListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensor_processing);
 
-        fftView = (FFTView)findViewById(R.id.SensorData);
+        fftView = (FFTView)findViewById(R.id.FFTData);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -41,10 +40,14 @@ public class SensorProcessing extends Activity  implements SensorEventListener
             // quit app or toast a message
         }
 
-        mSensorData = (SensorDataView)findViewById(R.id.SensorData);
-        mSampleSeekBar = (SeekBar)findViewById(R.id.SampleSeekBar);
-        mSampleSeekBar.setMax(100);
-        mSampleSeekBar.setProgress(50);
+
+        mSampleSeekBar = (SeekBar)findViewById(R.id.WindowsSeekBar);
+
+        mSampleSeekBar.setMax(5);
+        mSampleSeekBar.setProgress(2);
+        fftWindowsSize = 2*2;
+        signals = new double[fftWindowsSize];
+        registeredSignals = 0;
         mSampleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -57,7 +60,7 @@ public class SensorProcessing extends Activity  implements SensorEventListener
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                fftWindowsSize = seekBar.getProgress() * seekBar.getProgress();
+                fftWindowsSize = (int) Math.pow(2, seekBar.getProgress());
                 signals = new double[fftWindowsSize];
                 registeredSignals = 0;
             }
@@ -89,7 +92,19 @@ public class SensorProcessing extends Activity  implements SensorEventListener
         }
         return super.onOptionsItemSelected(item);
     }
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
 
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
+    }
     @Override
     public void onSensorChanged(SensorEvent event)
     {

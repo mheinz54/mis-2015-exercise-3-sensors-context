@@ -54,7 +54,7 @@ public class FFTView  extends View
 
     private void initDrawable(ShapeDrawable drawable, Path path, int color, int width, int height)
     {
-        path.moveTo(0,mContentHeight/2);
+        path.moveTo(0,0);
         drawable.setShape(new PathShape(path,width,height));
         drawable.getPaint().setStyle(Paint.Style.STROKE);
         drawable.getPaint().setColor(color);
@@ -63,17 +63,16 @@ public class FFTView  extends View
     public void addMeasurements(int fftWindowsSize, double[] signals)
     {
         float magnitudeValue = getFFTSignalMagnitude(fftWindowsSize, signals);
-        int mid = mContentHeight / 2;
 
         if(mPointCount >= mContentWidth)
         {
             mPointCount = 1;
             mMagnitudePath.rewind();
-            mMagnitudePath.moveTo(0,mid);
+            mMagnitudePath.moveTo(0,0);
         }
 
 
-       mMagnitudePath.lineTo(mPointCount,mid + magnitudeValue* 10);
+       mMagnitudePath.lineTo(mPointCount, magnitudeValue/10);
 
         mPointCount++;
         this.invalidate();

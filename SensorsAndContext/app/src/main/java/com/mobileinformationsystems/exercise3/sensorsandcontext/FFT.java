@@ -27,6 +27,8 @@ package com.mobileinformationsystems.exercise3.sensorsandcontext;
  *  https://www.ee.columbia.edu/~ronw/code/MEAPsoft/doc/html/FFT_8java-source.html
  */
 
+import java.util.Arrays;
+
 public class FFT {
 
   int n, m;
@@ -123,4 +125,26 @@ public class FFT {
           }
       }
   }
+
+    public static float getFFTSignalMagnitude(int fftWindowsSize, double[] signals)
+    {
+        FFT fft = new FFT(fftWindowsSize);
+        double[] y= new double[fftWindowsSize];
+        Arrays.fill(y, 0);
+
+        fft.fft(signals, y);
+        double magnitude= calculateAbsoluteValue(signals, y);
+        float magnitudeF = (float) magnitude;
+        return magnitudeF;
+    }
+    private static double calculateAbsoluteValue(double[] x, double[] y)
+    {
+        double absoluteValue = 0;
+        for (int i=0; i < x.length; i++)
+        {
+            double sum = x[i] +y[i];
+            absoluteValue += Math.pow(sum, 2);
+        }
+        return absoluteValue;
+    }
 }

@@ -62,7 +62,7 @@ public class FFTView  extends View
     }
     public void addMeasurements(int fftWindowsSize, double[] signals)
     {
-        float magnitudeValue = getFFTSignalMagnitude(fftWindowsSize, signals);
+        float magnitudeValue = FFT.getFFTSignalMagnitude(fftWindowsSize, signals);
 
         if(mPointCount >= mContentWidth)
         {
@@ -71,34 +71,13 @@ public class FFTView  extends View
             mMagnitudePath.moveTo(0,0);
         }
 
-
        mMagnitudePath.lineTo(mPointCount, magnitudeValue/10);
 
         mPointCount++;
         this.invalidate();
 
     }
-    private float getFFTSignalMagnitude(int fftWindowsSize, double[] signals)
-    {
-        FFT fft = new FFT(fftWindowsSize);
-        double[] y= new double[fftWindowsSize];
-        Arrays.fill(y, 0);
 
-        fft.fft(signals, y);
-        double magnitude= calculateAbsoluteValue(signals, y);
-        float magnitudeF = (float) magnitude;
-        return magnitudeF;
-    }
-    private double calculateAbsoluteValue(double[] x, double[] y)
-    {
-        double absoluteValue = 0;
-        for (int i=0; i < x.length; i++)
-        {
-            double sum = x[i] +y[i];
-            absoluteValue += Math.pow(sum, 2);
-        }
-        return absoluteValue;
-    }
     @Override
     protected void onDraw(Canvas canvas)
     {

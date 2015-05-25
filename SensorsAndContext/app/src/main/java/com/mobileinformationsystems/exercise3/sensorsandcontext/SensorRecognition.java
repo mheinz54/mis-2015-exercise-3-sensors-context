@@ -9,17 +9,28 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
+
 
 public class SensorRecognition extends Activity implements SensorEventListener
 {
+    private static final String TAG = "SensorRecognition";
     private final int WALKING_THRESHOLD = 50;
     private final int RUNNING_THRESHOLD = 150;
     private final int SITTING_THRESHOLD = 10;
-    private final int TIME_RANGE = 1000; //1 second
+    private final int TIME_RANGE = 5000; //5 second
+    private final int WINDOW_SIZE = 2;
+
+    private double[] mSignals;
+    private int mRegisteredSignals = 0;
+    private Queue<Float> mFFTValues = new LinkedList<Float>();
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -49,14 +60,22 @@ public class SensorRecognition extends Activity implements SensorEventListener
                     int values ;
                     synchronized (mLock)
                     {
-                        values = 10;
+                        Float mean = 0.0f;
+                        int len = mFFTValues.size();
+                        while(!mFFTValues.isEmpty())
+                        {
+                            mean += mFFTValues.remove();
+                        }
+                        mean /= len;
 
-                        if (values > RUNNING_THRESHOLD)
+                        if (mean > RUNNING_THRESHOLD)
                             changeRecognizeText("Running");
-                        else if (values > WALKING_THRESHOLD)
+                        else if (mean > WALKING_THRESHOLD)
                             changeRecognizeText("Walking");
                         else
                             changeRecognizeText("Sitting");
+
+                        Log.v(TAG, "Mean value = " + mean);
                     }
                     mHandler.postDelayed(this, TIME_RANGE);
                 }
@@ -110,6 +129,17 @@ public class SensorRecognition extends Activity implements SensorEventListener
         //build up the fft values
         synchronized (mLock)
         {
+            mSignals[mRegisteredSignals] =event.values[0] + event.values[1] + event.values[2] ;
+            mRegisteredSignals++;
+            if(mRegisteredSignals == WINDOW_SIZE)
+            {
+                float magnitudeValue = FFT.getFFTSignalMagnitude(WINDOW_SIZE, mSignals);
+                mFFTValues.add(magnitudeValue);
+
+                //reset registered signals
+                Arrays.fill(mSignals, 0);
+                mRegisteredSignals = 0;
+            }
 
         }
     }

@@ -10,42 +10,35 @@ import android.graphics.drawable.shapes.PathShape;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.Arrays;
 
-public class SensorDataView extends View
+public class FFTView  extends View
 {
-    private ShapeDrawable mDrawableX = new ShapeDrawable();
-    private ShapeDrawable mDrawableY = new ShapeDrawable();
-    private ShapeDrawable mDrawableZ = new ShapeDrawable();
     private ShapeDrawable mDrawableM = new ShapeDrawable();
-
-    private Path mXAxisPath = new Path();
-    private Path mYAxisPath = new Path();
-    private Path mZAxisPath = new Path();
     private Path mMagnitudePath = new Path();
-
     private int mPointCount = 1;
-    private int mContentWidth = 0;
     private int mContentHeight = 0;
+    private int mContentWidth = 0;
 
-    public SensorDataView(Context context)
+    public FFTView(Context context)
     {
         super(context);
-        init(null, 0);
+        init();
     }
 
-    public SensorDataView(Context context, AttributeSet attrs)
+    public FFTView(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        init(attrs, 0);
+        init();
     }
 
-    public SensorDataView(Context context, AttributeSet attrs, int defStyle)
+    public FFTView(Context context, AttributeSet attrs, int defStyle)
     {
         super(context, attrs, defStyle);
-        init(attrs, defStyle);
+        init();
     }
 
-    private void init(AttributeSet attrs, int defStyle)
+    private void init()
     {
         int paddingLeft = getPaddingLeft();
         int paddingTop = getPaddingTop();
@@ -55,11 +48,9 @@ public class SensorDataView extends View
         mContentWidth = getWidth() - paddingLeft - paddingRight;
         mContentHeight = getHeight() - paddingTop - paddingBottom;
 
-        initDrawable(mDrawableX,mXAxisPath,Color.RED,mContentWidth,mContentHeight);
-        initDrawable(mDrawableY,mYAxisPath,Color.GREEN,mContentWidth,mContentHeight);
-        initDrawable(mDrawableZ,mZAxisPath,Color.BLUE,mContentWidth,mContentHeight);
         initDrawable(mDrawableM,mMagnitudePath,Color.WHITE,mContentWidth,mContentHeight);
     }
+
 
     private void initDrawable(ShapeDrawable drawable, Path path, int color, int width, int height)
     {
@@ -69,48 +60,57 @@ public class SensorDataView extends View
         drawable.getPaint().setColor(color);
         drawable.setBounds(0,0,width,height);
     }
-
-    public void addMeasurements(float xValue, float yValue, float zValue)
+    public void addMeasurements(int fftWindowsSize, double[] signals)
     {
+        float magnitudeValue = getFFTSignalMagnitude(fftWindowsSize, signals);
         int mid = mContentHeight / 2;
 
         if(mPointCount >= mContentWidth)
         {
             mPointCount = 1;
-            mXAxisPath.rewind();
-            mXAxisPath.moveTo(0,mid);
-            mYAxisPath.rewind();
-            mXAxisPath.moveTo(0,mid);
-            mZAxisPath.rewind();
-            mZAxisPath.moveTo(0,mid);
             mMagnitudePath.rewind();
             mMagnitudePath.moveTo(0,mid);
         }
 
-        mXAxisPath.lineTo(mPointCount,mid + xValue*10);
-        mYAxisPath.lineTo(mPointCount,mid + yValue*10);
-        mZAxisPath.lineTo(mPointCount,mid + zValue*10);
-        mMagnitudePath.lineTo(mPointCount,mid + (xValue + yValue + zValue) * 10);
+
+       mMagnitudePath.lineTo(mPointCount,mid + magnitudeValue* 10);
 
         mPointCount++;
         this.invalidate();
 
     }
+    private float getFFTSignalMagnitude(int fftWindowsSize, double[] signals)
+    {
+        FFT fft = new FFT(fftWindowsSize);
+        double[] y= new double[fftWindowsSize];
+        Arrays.fill(y, 0);
 
+        fft.fft(signals, y);
+        double magnitude= calculateAbsoluteValue(signals, y);
+        float magnitudeF = (float) magnitude;
+        return magnitudeF;
+    }
+    private double calculateAbsoluteValue(double[] x, double[] y)
+    {
+        double absoluteValue = 0;
+        for (int i=0; i < x.length; i++)
+        {
+            double sum = x[i] +y[i];
+            absoluteValue += Math.pow(sum, 2);
+        }
+        return absoluteValue;
+    }
     @Override
     protected void onDraw(Canvas canvas)
     {
-        mDrawableX.draw(canvas);
-        mDrawableY.draw(canvas);
-        mDrawableZ.draw(canvas);
         mDrawableM.draw(canvas);
-
         super.onDraw(canvas);
     }
 
     @Override
     protected void onSizeChanged (int w, int h, int oldw, int oldh)
     {
-        init(null,0);
+        init();
     }
+
 }

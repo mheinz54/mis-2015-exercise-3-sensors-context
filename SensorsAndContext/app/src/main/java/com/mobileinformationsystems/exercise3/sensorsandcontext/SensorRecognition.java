@@ -18,6 +18,23 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * In order to detect the activities we used the fft magnitude
+ * calculated in the "Processing" (2b)
+ *
+ * We defined the thresholds based on time and FFT window size:
+ * - The time that we chose is 5 seconds
+ * - FFT windows size is 8 (n=8 --> 8 x, y and z values).
+ *      Note: For lower FFT window, the user might be running then slowing down
+ *      for a micro of seconds so the fft gets much lower and switch
+ *      the activity detection from Running to Walking Or from Walking to sitting
+ *
+ * ==> Each 5 seconds we get the mean of FFT Values and we compare it to the threshold:
+ * Based on the time and FFT windows, we tested the 3 activities based on
+ * 2 users and we noticed that the threshold of WALKING should be > 10, RUNNING is usually
+ * greater than 60 and sitting is less than 10.
+ *
+ */
 
 public class SensorRecognition extends Activity implements SensorEventListener
 {

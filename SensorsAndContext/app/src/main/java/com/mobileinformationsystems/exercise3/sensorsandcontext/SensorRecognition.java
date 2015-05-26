@@ -22,8 +22,8 @@ import java.util.Queue;
 public class SensorRecognition extends Activity implements SensorEventListener
 {
     private static final String TAG = "SensorRecognition";
-    private final int WALKING_THRESHOLD = 50;
-    private final int RUNNING_THRESHOLD = 150;
+    private final int WALKING_THRESHOLD = 200;
+    private final int RUNNING_THRESHOLD = 450;
     private final int SITTING_THRESHOLD = 10;
     private final int TIME_RANGE = 5000; //5 second
     private final int WINDOW_SIZE = 2;
@@ -31,6 +31,7 @@ public class SensorRecognition extends Activity implements SensorEventListener
     private double[] mSignals;
     private int mRegisteredSignals = 0;
     private Queue<Float> mFFTValues = new LinkedList<Float>();
+    private boolean mBusy = false;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -45,6 +46,7 @@ public class SensorRecognition extends Activity implements SensorEventListener
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSignals = new double[WINDOW_SIZE];
         if(mAccelerometer == null)
         {
             // quit app or toast a message
@@ -59,7 +61,9 @@ public class SensorRecognition extends Activity implements SensorEventListener
                     //somehow process fft values
                     int values ;
                     synchronized (mLock)
+                 //   if(mBusy == false)
                     {
+                        mBusy = true;
                         Float mean = 0.0f;
                         int len = mFFTValues.size();
                         while(!mFFTValues.isEmpty())
@@ -76,6 +80,7 @@ public class SensorRecognition extends Activity implements SensorEventListener
                             changeRecognizeText("Sitting");
 
                         Log.v(TAG, "Mean value = " + mean);
+                        mBusy = false;
                     }
                     mHandler.postDelayed(this, TIME_RANGE);
                 }
@@ -94,6 +99,20 @@ public class SensorRecognition extends Activity implements SensorEventListener
                 textRecognition.setText(text);
             }
         });
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -126,10 +145,17 @@ public class SensorRecognition extends Activity implements SensorEventListener
     @Override
     public void onSensorChanged(SensorEvent event)
     {
+        addSignals(event.values[0], event.values[1], event.values[2]);
+    }
+
+    private void addSignals(Float x, Float y, Float z)
+    {
         //build up the fft values
         synchronized (mLock)
+     //   if(mBusy == false)
         {
-            mSignals[mRegisteredSignals] =event.values[0] + event.values[1] + event.values[2] ;
+            mBusy = true;
+            mSignals[mRegisteredSignals] = x + y + z;
             mRegisteredSignals++;
             if(mRegisteredSignals == WINDOW_SIZE)
             {
@@ -140,7 +166,7 @@ public class SensorRecognition extends Activity implements SensorEventListener
                 Arrays.fill(mSignals, 0);
                 mRegisteredSignals = 0;
             }
-
+            mBusy = false;
         }
     }
 

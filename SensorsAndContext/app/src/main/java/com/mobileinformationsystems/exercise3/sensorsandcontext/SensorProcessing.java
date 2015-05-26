@@ -92,6 +92,7 @@ public class SensorProcessing extends Activity  implements SensorEventListener
         }
         return super.onOptionsItemSelected(item);
     }
+
     @Override
     protected void onResume()
     {
@@ -105,6 +106,7 @@ public class SensorProcessing extends Activity  implements SensorEventListener
         super.onPause();
         mSensorManager.unregisterListener(this);
     }
+
     @Override
     public void onSensorChanged(SensorEvent event)
     {

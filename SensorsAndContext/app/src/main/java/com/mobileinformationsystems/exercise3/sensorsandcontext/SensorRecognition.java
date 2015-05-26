@@ -22,21 +22,22 @@ import java.util.Queue;
 public class SensorRecognition extends Activity implements SensorEventListener
 {
     private static final String TAG = "SensorRecognition";
-    private final int WALKING_THRESHOLD = 200;
-    private final int RUNNING_THRESHOLD = 450;
-    private final int SITTING_THRESHOLD = 10;
+    private final int WALKING_THRESHOLD = 10;
+    private final int RUNNING_THRESHOLD = 60;
+    private final int SITTING_THRESHOLD = 0;
     private final int TIME_RANGE = 5000; //5 second
-    private final int WINDOW_SIZE = 2;
+    private final int WINDOW_SIZE = 8;
 
     private double[] mSignals;
     private int mRegisteredSignals = 0;
     private Queue<Float> mFFTValues = new LinkedList<Float>();
-    private boolean mBusy = false;
 
+    TextView mTextRecognition, mTextView;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Handler mHandler = new Handler();
     private Object mLock = new Object();
+    private static boolean mFree = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -44,6 +45,8 @@ public class SensorRecognition extends Activity implements SensorEventListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensor_recognition);
 
+        mTextView = (TextView)findViewById(R.id.textView);
+        mTextRecognition = (TextView) findViewById(R.id.textRecognition);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mSignals = new double[WINDOW_SIZE];
@@ -58,29 +61,41 @@ public class SensorRecognition extends Activity implements SensorEventListener
                 @Override
                 public void run()
                 {
-                    //somehow process fft values
-                    int values ;
-                    synchronized (mLock)
-                 //   if(mBusy == false)
+                  //  synchronized (mLock)
+                    if(mFree)
                     {
-                        mBusy = true;
-                        Float mean = 0.0f;
-                        int len = mFFTValues.size();
-                        while(!mFFTValues.isEmpty())
+                        mFree = false;
+                        float mean = 0.0f;
+                        float min = Float.MAX_VALUE;
+                        float max = 0.0f;
+                        if(!mFFTValues.isEmpty())
                         {
-                            mean += mFFTValues.remove();
+                            int len = mFFTValues.size();
+                            while (!mFFTValues.isEmpty())
+                            {
+                                float value = mFFTValues.remove();
+                                Log.v(TAG, "" + value);
+
+                                if(value < min)
+                                    min = value;
+                                if(value > max)
+                                    max = value;
+                               // mean += value;
+                            }
+                            //mean /= len;
+                            mean = max - min;
                         }
-                        mean /= len;
 
                         if (mean > RUNNING_THRESHOLD)
-                            changeRecognizeText("Running");
+                            changeRecognizeText("Running","" + mean);
                         else if (mean > WALKING_THRESHOLD)
-                            changeRecognizeText("Walking");
+                            changeRecognizeText("Walking","" + mean);
                         else
-                            changeRecognizeText("Sitting");
+                            changeRecognizeText("Sitting","" + mean);
 
                         Log.v(TAG, "Mean value = " + mean);
-                        mBusy = false;
+
+                        mFree = true;
                     }
                     mHandler.postDelayed(this, TIME_RANGE);
                 }
@@ -88,15 +103,15 @@ public class SensorRecognition extends Activity implements SensorEventListener
         }
     }
 
-    private void changeRecognizeText(final String text)
+    private void changeRecognizeText(final String text, final String value)
     {
         runOnUiThread(new Runnable()
         {
             @Override
             public void run()
             {
-                TextView textRecognition = (TextView) findViewById(R.id.textRecognition);
-                textRecognition.setText(text);
+                mTextRecognition.setText(text);
+                mTextView.setText(value);
             }
         });
     }
@@ -113,7 +128,7 @@ public class SensorRecognition extends Activity implements SensorEventListener
     {
         super.onPause();
         mSensorManager.unregisterListener(this);
-    }
+}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -151,10 +166,10 @@ public class SensorRecognition extends Activity implements SensorEventListener
     private void addSignals(Float x, Float y, Float z)
     {
         //build up the fft values
-        synchronized (mLock)
-     //   if(mBusy == false)
+        //synchronized (mLock)
+        if(mFree)
         {
-            mBusy = true;
+            mFree = false;
             mSignals[mRegisteredSignals] = x + y + z;
             mRegisteredSignals++;
             if(mRegisteredSignals == WINDOW_SIZE)
@@ -166,7 +181,7 @@ public class SensorRecognition extends Activity implements SensorEventListener
                 Arrays.fill(mSignals, 0);
                 mRegisteredSignals = 0;
             }
-            mBusy = false;
+            mFree = true;
         }
     }
 

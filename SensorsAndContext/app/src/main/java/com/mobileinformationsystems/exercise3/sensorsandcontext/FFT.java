@@ -137,6 +137,7 @@ public class FFT {
         float magnitudeF = (float) magnitude;
         return magnitudeF;
     }
+
     private static double calculateAbsoluteValue(double[] x, double[] y)
     {
         double absoluteValue = 0;
@@ -145,6 +146,6 @@ public class FFT {
             double sum = x[i] +y[i];
             absoluteValue += Math.pow(sum, 2);
         }
-        return absoluteValue;
+        return Math.sqrt(absoluteValue);
     }
 }

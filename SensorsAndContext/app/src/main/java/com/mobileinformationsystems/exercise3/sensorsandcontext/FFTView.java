@@ -71,7 +71,7 @@ public class FFTView  extends View
             mMagnitudePath.moveTo(0,0);
         }
 
-       mMagnitudePath.lineTo(mPointCount, magnitudeValue/10);
+       mMagnitudePath.lineTo(mPointCount, magnitudeValue);
 
         mPointCount++;
         this.invalidate();
